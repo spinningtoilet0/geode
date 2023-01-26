@@ -4,7 +4,7 @@
 
 #include <Geode/utils/VersionInfo.hpp>
 #include <Geode/utils/general.hpp>
-#include <Geode/external/json/json.hpp>
+#include <json11.hpp>
 
 USE_GEODE_NAMESPACE();
 
@@ -103,15 +103,15 @@ std::string VersionInfo::toString(bool includeTag) const {
     return fmt::format("v{}.{}.{}", m_major, m_minor, m_patch);
 }
 
-void geode::to_json(nlohmann::json& json, VersionInfo const& info) {
+void geode::to_json(json11::Json& json, VersionInfo const& info) {
     json = info.toString();
 }
 
-void geode::from_json(nlohmann::json const& json, VersionInfo& info) {
-    auto ver = VersionInfo::parse(json.template get<std::string>());
+void geode::from_json(json11::Json const& json, VersionInfo& info) {
+    auto ver = VersionInfo::parse(json.template as<std::string>());
     if (!ver) {
-        throw nlohmann::json::type_error::create(
-            0, "Invalid version format: " + ver.unwrapErr(), json
+        throw json11::JsonException(
+            "Invalid version format: " + ver.unwrapErr()
         );
     }
     info = ver.unwrap();
@@ -152,15 +152,15 @@ std::string ComparableVersionInfo::toString() const {
     return prefix + m_version.toString();
 }
 
-void geode::to_json(nlohmann::json& json, ComparableVersionInfo const& info) {
+void geode::to_json(json11::Json& json, ComparableVersionInfo const& info) {
     json = info.toString();
 }
 
-void geode::from_json(nlohmann::json const& json, ComparableVersionInfo& info) {
-    auto ver = ComparableVersionInfo::parse(json.template get<std::string>());
+void geode::from_json(json11::Json const& json, ComparableVersionInfo& info) {
+    auto ver = ComparableVersionInfo::parse(json.template as<std::string>());
     if (!ver) {
-        throw nlohmann::json::type_error::create(
-            0, "Invalid version format: " + ver.unwrapErr(), json
+        throw json11::JsonException(
+            "Invalid version format: " + ver.unwrapErr()
         );
     }
     info = ver.unwrap();

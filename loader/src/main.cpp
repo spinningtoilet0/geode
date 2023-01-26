@@ -118,16 +118,16 @@ $execute {
         }
     });
     
-    listenForIPC("ipc-test", [](IPCEvent* event) -> nlohmann::json {
+    listenForIPC("ipc-test", [](IPCEvent* event) -> json11::Json {
         return "Hello from Geode!";
     });
 
-    listenForIPC("loader-info", [](IPCEvent* event) -> nlohmann::json {
+    listenForIPC("loader-info", [](IPCEvent* event) -> json11::Json {
         return Loader::get()->getModImpl()->getModInfo();
     });
 
-    listenForIPC("list-mods", [](IPCEvent* event) -> nlohmann::json {
-        std::vector<nlohmann::json> res;
+    listenForIPC("list-mods", [](IPCEvent* event) -> json11::Json {
+        std::vector<json11::Json> res;
 
         auto args = *event->messageData;
         JsonChecker checker(args);

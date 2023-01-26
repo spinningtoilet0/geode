@@ -25,15 +25,15 @@ public:
     MySettingValue(std::string const& key, Icon icon)
       : SettingValue(key), m_icon(icon) {}
 
-    bool load(nlohmann::json const& json) override {
+    bool load(json11::Json const& json) override {
         try {
-            m_icon = static_cast<Icon>(json.get<int>());
+            m_icon = static_cast<Icon>(json.as<int>());
             return true;
         } catch(...) {
             return false;
         }
     }
-    bool save(nlohmann::json& json) const override {
+    bool save(json11::Json& json) const override {
         json = static_cast<int>(m_icon);
         return true;
     }

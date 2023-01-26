@@ -85,7 +85,7 @@ VersionInfo Mod::Impl::getVersion() const {
     return m_info.version;
 }
 
-nlohmann::json& Mod::Impl::getSaveContainer() {
+json11::Json& Mod::Impl::getSaveContainer() {
     return m_saved;
 }
 
@@ -124,8 +124,14 @@ Result<> Mod::Impl::loadData() {
     if (ghc::filesystem::exists(settingPath)) {
         GEODE_UNWRAP_INTO(auto settingData, utils::file::readString(settingPath));
         try {
+            std::string err;
+
             // parse settings.json
-            auto json = nlohmann::json::parse(settingData);
+            auto json = json11::Json::parse(settingData, err);
+
+            if (!err.empty())
+                throw json11::JsonException(err);
+
             JsonChecker checker(json);
             auto root = checker.root("[settings.json]");
 
@@ -165,12 +171,12 @@ Result<> Mod::Impl::loadData() {
     auto savedPath = m_saveDirPath / "saved.json";
     if (ghc::filesystem::exists(savedPath)) {
         GEODE_UNWRAP_INTO(auto data, utils::file::readString(savedPath));
-        try {
-            m_saved = nlohmann::json::parse(data);
-        }
-        catch (std::exception& e) {
-            return Err(std::string("Unable to parse saved values: ") + e.what());
-        }
+
+        std::string err;
+        m_saved = json11::Json::parse(data, err);
+        
+        if (!err.empty())
+            return Err(std::string("Unable to parse saved values: ") + err);
     }
 
     return Ok();
@@ -184,7 +190,7 @@ Result<> Mod::Impl::saveData() {
     std::unordered_set<std::string> coveredSettings;
 
     // Settings
-    auto json = nlohmann::json::object();
+    auto json = json11::Json();
     for (auto& [key, value] : m_settings) {
         coveredSettings.insert(key);
         if (!value->save(json[key])) {
@@ -197,7 +203,7 @@ Result<> Mod::Impl::saveData() {
     // order to not lose data
     try {
         log::debug("Check covered");
-        for (auto& [key, value] : m_savedSettingsData.items()) {
+        for (auto& [key, value] : m_savedSettingsData.object_items()) {
             log::debug("Check if {} is saved", key);
             if (!coveredSettings.count(key)) {
                 json[key] = value;
@@ -207,12 +213,18 @@ Result<> Mod::Impl::saveData() {
     catch (...) {
     }
 
-    auto res = utils::file::writeString(m_saveDirPath / "settings.json", json.dump(4));
+    std::string settingsStr;
+    std::string savedStr;
+
+    json.dump(settingsStr);
+    m_saved.dump(savedStr);
+
+    auto res = utils::file::writeString(m_saveDirPath / "settings.json", settingsStr);
     if (!res) {
         log::error("Unable to save settings: {}", res.unwrapErr());
     }
 
-    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", m_saved.dump(4));
+    auto res2 = utils::file::writeString(m_saveDirPath / "saved.json", savedStr);
     if (!res2) {
         log::error("Unable to save values: {}", res2.unwrapErr());
     }
@@ -231,8 +243,8 @@ void Mod::Impl::setupSettings() {
 void Mod::Impl::registerCustomSetting(std::string const& key, std::unique_ptr<SettingValue> value) {
     if (!m_settings.count(key)) {
         // load data
-        if (m_savedSettingsData.count(key)) {
-            value->load(m_savedSettingsData.at(key));
+        if (m_savedSettingsData.object_items().count(key)) {
+            value->load(m_savedSettingsData[key]);
         }
         m_settings.emplace(key, std::move(value));
     }
@@ -617,11 +629,11 @@ ModJson Mod::Impl::getRuntimeInfo() const {
     auto obj = ModJson::object();
     obj["hooks"] = ModJson::array();
     for (auto hook : m_hooks) {
-        obj["hooks"].push_back(ModJson(hook->getRuntimeInfo()));
+        obj["hooks"].array_items().push_back(ModJson(hook->getRuntimeInfo()));
     }
     obj["patches"] = ModJson::array();
     for (auto patch : m_patches) {
-        obj["patches"].push_back(ModJson(patch->getRuntimeInfo()));
+        obj["patches"].array_items().push_back(ModJson(patch->getRuntimeInfo()));
     }
     obj["enabled"] = m_enabled;
     obj["loaded"] = m_binaryLoaded;
@@ -639,35 +651,35 @@ You can support our work by sending <cp>**catgirl pictures**</c> to [HJfod](http
 )MD";
 
 static ModInfo getModImplInfo() {
-    try {
-        auto json = ModJson::parse(LOADER_MOD_JSON);
-        auto infoRes = ModInfo::create(json);
-        if (infoRes.isErr()) {
-            LoaderImpl::get()->platformMessageBox(
-                "Fatal Internal Error",
-                "Unable to parse loader mod.json: \"" + infoRes.unwrapErr() +
-                    "\"\n"
-                    "This is a fatal internal error in the loader, please "
-                    "contact Geode developers immediately!"
-            );
-            return ModInfo();
-        }
-        auto info = infoRes.unwrap();
-        info.details = LOADER_ABOUT_MD;
-        info.supportInfo = SUPPORT_INFO;
-        info.supportsDisabling = false;
-        return info;
-    }
-    catch (std::exception& e) {
+    std::string err;
+    auto json = ModJson::parse(LOADER_MOD_JSON, err);
+    if (!err.empty()) {
         LoaderImpl::get()->platformMessageBox(
             "Fatal Internal Error",
-            "Unable to parse loader mod.json: \"" + std::string(e.what()) +
+            "Unable to parse loader mod.json: \"" + err +
                 "\"\n"
                 "This is a fatal internal error in the loader, please "
                 "contact Geode developers immediately!"
         );
         return ModInfo();
     }
+
+    auto infoRes = ModInfo::create(json);
+    if (infoRes.isErr()) {
+        LoaderImpl::get()->platformMessageBox(
+            "Fatal Internal Error",
+            "Unable to parse loader mod.json: \"" + infoRes.unwrapErr() +
+                "\"\n"
+                "This is a fatal internal error in the loader, please "
+                "contact Geode developers immediately!"
+        );
+        return ModInfo();
+    }
+    auto info = infoRes.unwrap();
+    info.details = LOADER_ABOUT_MD;
+    info.supportInfo = SUPPORT_INFO;
+    info.supportsDisabling = false;
+    return info;
 }
 
 Mod* Loader::Impl::createInternalMod() {

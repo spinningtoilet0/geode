@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../external/json/json_fwd.hpp"
+#include <json11.hpp>
 #include "casts.hpp"
 #include "general.hpp"
 #include "../DefaultInclude.hpp"
@@ -11,10 +11,10 @@
 
 // support converting ccColor3B / ccColor4B to / from json
 namespace cocos2d {
-    void GEODE_DLL to_json(nlohmann::json& json, cocos2d::ccColor3B const& color);
-    void GEODE_DLL from_json(nlohmann::json const& json, cocos2d::ccColor3B& color);
-    void GEODE_DLL to_json(nlohmann::json& json, cocos2d::ccColor4B const& color);
-    void GEODE_DLL from_json(nlohmann::json const& json, cocos2d::ccColor4B& color);
+    json11::Json GEODE_DLL to_json(cocos2d::ccColor3B const& color);
+    void GEODE_DLL from_json(json11::Json const& json, cocos2d::ccColor3B& color);
+    json11::Json GEODE_DLL to_json(cocos2d::ccColor4B const& color);
+    void GEODE_DLL from_json(json11::Json const& json, cocos2d::ccColor4B& color);
 }
 
 // operators for CC geometry

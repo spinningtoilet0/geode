@@ -3,7 +3,7 @@
 #include "Result.hpp"
 #include "general.hpp"
 
-#include "../external/json/json_fwd.hpp"
+#include <json11.hpp>
 #include <Geode/DefaultInclude.hpp>
 #include <ghc/filesystem.hpp>
 #include <string>
@@ -11,13 +11,13 @@
 
 // allow converting ghc filesystem to json and back
 namespace ghc::filesystem {
-    void GEODE_DLL to_json(nlohmann::json& json, path const& path);
-    void GEODE_DLL from_json(nlohmann::json const& json, path& path);
+    void GEODE_DLL to_json(json11::Json& json, path const& path);
+    void GEODE_DLL from_json(json11::Json const& json, path& path);
 }
 
 namespace geode::utils::file {
     GEODE_DLL Result<std::string> readString(ghc::filesystem::path const& path);
-    GEODE_DLL Result<nlohmann::json> readJson(ghc::filesystem::path const& path);
+    GEODE_DLL Result<json11::Json> readJson(ghc::filesystem::path const& path);
     GEODE_DLL Result<ByteVector> readBinary(ghc::filesystem::path const& path);
 
     GEODE_DLL Result<> writeString(ghc::filesystem::path const& path, std::string const& data);

@@ -2,7 +2,7 @@
 
 #include "../DefaultInclude.hpp"
 #include <string_view>
-#include "../external/json/json_fwd.hpp"
+#include <json11.hpp>
 #include <tuple>
 #include "../utils/Result.hpp"
 
@@ -100,8 +100,8 @@ namespace geode {
 
         std::string toString(bool includeTag = true) const;
     };
-    void GEODE_DLL to_json(nlohmann::json& json, VersionInfo const& info);
-    void GEODE_DLL from_json(nlohmann::json const& json, VersionInfo& info);
+    void GEODE_DLL to_json(json11::Json& json, VersionInfo const& info);
+    void GEODE_DLL from_json(json11::Json const& json, VersionInfo& info);
     GEODE_DLL std::ostream& operator<<(std::ostream& stream, VersionInfo const& version);
 
     class GEODE_DLL ComparableVersionInfo final {
@@ -129,7 +129,7 @@ namespace geode {
 
         std::string toString() const;
     };
-    void GEODE_DLL to_json(nlohmann::json& json, ComparableVersionInfo const& info);
-    void GEODE_DLL from_json(nlohmann::json const& json, ComparableVersionInfo& info);
+    void GEODE_DLL to_json(json11::Json& json, ComparableVersionInfo const& info);
+    void GEODE_DLL from_json(json11::Json const& json, ComparableVersionInfo& info);
     GEODE_DLL std::ostream& operator<<(std::ostream& stream, ComparableVersionInfo const& version);
 }

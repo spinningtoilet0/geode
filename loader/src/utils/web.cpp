@@ -2,7 +2,7 @@
 #include <Geode/loader/Loader.hpp>
 #include <Geode/utils/casts.hpp>
 #include <Geode/utils/web.hpp>
-#include <Geode/external/json/json.hpp>
+#include <json11.hpp>
 #include <thread>
 
 USE_GEODE_NAMESPACE();
@@ -98,11 +98,11 @@ Result<ByteVector> web::fetchBytes(std::string const& url) {
     return Err("Error getting info: " + std::string(curl_easy_strerror(res)));
 }
 
-Result<nlohmann::json> web::fetchJSON(std::string const& url) {
+Result<json11::Json> web::fetchJSON(std::string const& url) {
     std::string res;
     GEODE_UNWRAP_INTO(res, fetch(url));
     try {
-        return Ok(nlohmann::json::parse(res));
+        return Ok(json11::Json::try_parse(res));
     }
     catch (std::exception& e) {
         return Err(e.what());
@@ -506,10 +506,10 @@ AsyncWebResult<ByteVector> AsyncWebResponse::bytes() {
     });
 }
 
-AsyncWebResult<nlohmann::json> AsyncWebResponse::json() {
-    return this->as(+[](ByteVector const& bytes) -> Result<nlohmann::json> {
+AsyncWebResult<json11::Json> AsyncWebResponse::json() {
+    return this->as(+[](ByteVector const& bytes) -> Result<json11::Json> {
         try {
-            return Ok(nlohmann::json::parse(bytes.begin(), bytes.end()));
+            return Ok(json11::Json::try_parse(std::string(bytes.begin(), bytes.end())));
         }
         catch (std::exception& e) {
             return Err(std::string(e.what()));

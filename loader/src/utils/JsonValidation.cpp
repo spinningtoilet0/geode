@@ -62,7 +62,7 @@ JsonMaybeSomething<Json>& JsonMaybeValue<Json>::self() {
 
 template <class Json>
 JsonMaybeValue<Json>& JsonMaybeValue<Json>::array() {
-    this->as<value_t::array>();
+    this->as<value_t::ARRAY>();
     return *this;
 }
 
@@ -169,7 +169,7 @@ JsonMaybeValue<Json>& JsonMaybeValue<Json>::array() {
 
 template <class Json>
 JsonMaybeObject<Json> JsonMaybeValue<Json>::obj() {
-    this->as<value_t::object>();
+    this->as<value_t::OBJECT>();
     return JsonMaybeObject(self().m_checker, self().m_json, self().m_hierarchy, self().m_hasValue);
 }
 
@@ -198,11 +198,13 @@ JsonMaybeObject<Json> JsonMaybeValue<Json>::obj() {
 
 template <class Json>
 JsonMaybeValue<Json> JsonMaybeValue<Json>::at(size_t i) {
-    this->as<value_t::array>();
+    this->as<value_t::ARRAY>();
     if (this->isError()) return *this;
-    if (self().m_json.size() <= i) {
+
+    auto& json = self().m_json.array_items();
+    if (json.size() <= i) {
         this->setError(
-            self().m_hierarchy + ": has " + std::to_string(self().m_json.size()) +
+            self().m_hierarchy + ": has " + std::to_string(json.size()) +
             "items "
             ", expected to have at least " +
             std::to_string(i + 1)
@@ -210,17 +212,19 @@ JsonMaybeValue<Json> JsonMaybeValue<Json>::at(size_t i) {
         return *this;
     }
     return JsonMaybeValue<Json>(
-        self().m_checker, self().m_json.at(i), self().m_hierarchy + "." + std::to_string(i), self().m_hasValue
+        self().m_checker, json.at(i), self().m_hierarchy + "." + std::to_string(i), self().m_hasValue
     );
 }
 
 template <class Json>
 typename JsonMaybeValue<Json>::template Iterator<JsonMaybeValue<Json>> JsonMaybeValue<Json>::iterate() {
-    this->as<value_t::array>();
+    this->as<value_t::ARRAY>();
     Iterator<JsonMaybeValue<Json>> iter;
     if (this->isError()) return iter;
+
+    auto& json = self().m_json.array_items();
     size_t i = 0;
-    for (auto& obj : self().m_json) {
+    for (auto& obj : json) {
         iter.m_values.emplace_back(
             self().m_checker, obj, self().m_hierarchy + "." + std::to_string(i++), self().m_hasValue
         );
@@ -231,11 +235,11 @@ typename JsonMaybeValue<Json>::template Iterator<JsonMaybeValue<Json>> JsonMaybe
 template <class Json>
 typename JsonMaybeValue<Json>::template Iterator<std::pair<std::string, JsonMaybeValue<Json>>> JsonMaybeValue<
     Json>::items() {
-    this->as<value_t::object>();
+    this->as<value_t::OBJECT>();
     Iterator<std::pair<std::string, JsonMaybeValue<Json>>> iter;
     if (this->isError()) return iter;
 
-    for (auto& [k, v] : self().m_json.items()) {
+    for (auto& [k, v] : self().m_json.object_items()) {
         iter.m_values.emplace_back(
             k,
             JsonMaybeValue<Json>(self().m_checker, v, self().m_hierarchy + "." + k, self().m_hasValue)
@@ -275,7 +279,7 @@ template <class Json>
 JsonMaybeValue<Json> JsonMaybeObject<Json>::has(std::string const& key) {
     this->addKnownKey(key);
     if (this->isError()) return emptyValue();
-    if (!self().m_json.contains(key) || self().m_json[key].is_null()) {
+    if (!self().m_json.object_items().count(key) || self().m_json[key].is_null()) {
         return emptyValue();
     }
     return JsonMaybeValue<Json>(self().m_checker, self().m_json[key], key, true);
@@ -285,7 +289,7 @@ template <class Json>
 JsonMaybeValue<Json> JsonMaybeObject<Json>::needs(std::string const& key) {
     this->addKnownKey(key);
     if (this->isError()) return emptyValue();
-    if (!self().m_json.contains(key)) {
+    if (!self().m_json.object_items().count(key)) {
         this->setError(self().m_hierarchy + " is missing required key \"" + key + "\"");
         return emptyValue();
     }
@@ -294,7 +298,7 @@ JsonMaybeValue<Json> JsonMaybeObject<Json>::needs(std::string const& key) {
 
 template <class Json>
 void JsonMaybeObject<Json>::checkUnknownKeys() {
-    for (auto& [key, _] : self().m_json.items()) {
+    for (auto& [key, _] : self().m_json.object_items()) {
         if (!m_knownKeys.count(key)) {
             log::warn("{} contains unknown key \"{}\"", self().m_hierarchy, key);
         }
@@ -321,20 +325,20 @@ JsonMaybeValue<Json> JsonChecker<Json>::root(std::string const& hierarchy) {
 
 namespace geode {
 
-    template struct JsonMaybeSomething<nlohmann::json>;
-    template struct JsonMaybeSomething<nlohmann::json const>;
-    template struct JsonMaybeSomething<ModJson>;
+    template struct JsonMaybeSomething<json11::Json>;
+    template struct JsonMaybeSomething<json11::Json const>;
+    //template struct JsonMaybeSomething<ModJson>;
 
-    template struct JsonMaybeValue<nlohmann::json>;
-    template struct JsonMaybeValue<nlohmann::json const>;
-    template struct JsonMaybeValue<ModJson>;
+    template struct JsonMaybeValue<json11::Json>;
+    template struct JsonMaybeValue<json11::Json const>;
+    //template struct JsonMaybeValue<ModJson>;
 
-    template struct JsonMaybeObject<nlohmann::json>;
-    template struct JsonMaybeObject<nlohmann::json const>;
-    template struct JsonMaybeObject<ModJson>;
+    template struct JsonMaybeObject<json11::Json>;
+    template struct JsonMaybeObject<json11::Json const>;
+    //template struct JsonMaybeObject<ModJson>;
 
-    template struct JsonChecker<nlohmann::json>;
-    template struct JsonChecker<nlohmann::json const>;
-    template struct JsonChecker<ModJson>;
+    template struct JsonChecker<json11::Json>;
+    template struct JsonChecker<json11::Json const>;
+    //template struct JsonChecker<ModJson>;
 
 }

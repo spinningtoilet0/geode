@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.hpp"
-#include "../external/json/json_fwd.hpp"
+#include <json11.hpp>
 #include "../utils/VersionInfo.hpp"
 #include "../utils/Result.hpp"
 #include "Setting.hpp"
@@ -173,5 +173,5 @@ namespace geode {
     };
 
     // For converting ModInfo back to JSON
-    void GEODE_DLL to_json(nlohmann::json& json, ModInfo const& info);
+    json11::Json GEODE_DLL to_json(ModInfo const& info);
 }
