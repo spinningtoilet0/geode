@@ -11,6 +11,8 @@
 #pragma warning(push)
 #pragma warning(disable : 4275)
 
+json11::Json to_json(ghc::filesystem::path const& path);
+
 namespace geode {
     class SettingNode;
     class SettingValue;

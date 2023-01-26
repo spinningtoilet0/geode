@@ -10,6 +10,10 @@
 
 USE_GEODE_NAMESPACE();
 
+json11::Json to_json(ghc::filesystem::path const& path) {
+    return json11::Json(path.string());
+}
+
 template<class T>
 static void parseCommon(T& sett, JsonMaybeObject<ModJson>& obj) {
     obj.has("name").into(sett.name);
