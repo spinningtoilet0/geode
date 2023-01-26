@@ -243,7 +243,7 @@ std::vector<std::pair<std::string, std::optional<std::string>*>> ModInfo::getSpe
 
 ModJson ModInfo::toJSON() const {
     auto json = *m_rawJSON;
-    json["path"] = this->path;
+    json["path"] = this->path.string();
     json["binary"] = this->binaryName;
     return json;
 }

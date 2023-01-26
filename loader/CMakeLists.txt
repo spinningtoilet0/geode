@@ -127,9 +127,6 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GEODE_EXPORTING)
 
-# JSON support
-CPMAddPackage("gh:geode-sdk/json11#7994c85")
-
 # Markdown support
 CPMAddPackage("gh:mity/md4c#e9ff661")
 

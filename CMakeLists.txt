@@ -118,7 +118,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_link_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/loader/include/link)
 
-
+CPMAddPackage("gh:geode-sdk/json11#7994c85")
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 
