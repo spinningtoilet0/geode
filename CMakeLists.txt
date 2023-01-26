@@ -125,7 +125,7 @@ CPMAddPackage("gh:gulrak/filesystem#3e5b930")
 # Tulip hook (hooking)
 CPMAddPackage("gh:geode-sdk/TulipHook#9980bcf")
 
-target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources)
+target_link_libraries(${PROJECT_NAME} INTERFACE ghc_filesystem fmt TulipHookInclude GeodeCodegenSources json11)
 
 
 if (NOT EXISTS ${GEODE_BIN_PATH})
